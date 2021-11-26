@@ -1,0 +1,1 @@
+This is an example directory. Your submission should be similar to the .tar found here.
