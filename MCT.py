@@ -78,7 +78,7 @@ class Tree:
         while v.s.has_ended():
             action = choice(v.get_valid_actions(self.boardsize, v.colour))
             new_state = deepcopy(v.s)
-            new_state.set_tile_colour(action.get_x(), action.get_y(), action.colour)
+            action.move(new_state)
         
             v = Node(v, action, new_state, v.colour.opposite())
         
