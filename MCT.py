@@ -11,8 +11,11 @@ from src.Colour import Colour
 
 from typing import List, Tuple
 
+import math
+import numpy as np
+
 class Node:
-    
+
     # Look into type of state.
     def __init__(
         self,
@@ -38,12 +41,14 @@ class Node:
         self.children: List[Node] = []
     
     # All valid moves in current state.
-    def get_children(self) -> List[Node]:
+    def get_children(self, board: List[List[str]], board_size: int) -> List[Node]:
         children = []
-        for x in self.state:
-            for y in self.state:
-                # Loop over all tiles in state and add all valid moves as children.
-                pass
+        for i in range(board_size):
+            for j in range(board_size):
+                if board[i][j] == '0':
+                    child = Node(parent = self, x = i, y = j)
+                    children.append(child)
+        return children
 
     def get_valid_actions(self, baord_size: int, c: Colour) -> List[Move]:
         '''
@@ -64,15 +69,31 @@ class Node:
             # Check if tile is not occupied
             if tile.get_colour() is None:
                 valid_moves.append(m)
-            
+        return valid_moves            
+
 class Tree:
-    def __init__(self, boardsize: int = 11):
+    def __init__(self, boardsize: int = 11, root: Node):
         self.boardsize = boardsize
-    
-    def search(state: List[List["0" | str]]  = [[]]) -> str:
-        pass
-    
-    def default_policy(node: Node) -> Node:
+        self.TIME = 0
+        self.c = 0
+        self.current_node = root
+
+
+    def search(self, state: List[List["0" | str]] = [[]]) -> bytes:
+        v0 = self.current_node
+        while self.TIME > 0:
+            v1 = self.tree_policy(v0)
+            reward = self.default_policy(v1)
+            self.backup(v1, reward)
+        best_child = self.best_child(v0, self.c)
+        # derive action from best child
+        # convert to string
+        # set current_node to best_child
+        self.current_node = best_child
+        action = bytes(f"{best_child.x},{best_child.y}\n", "utf-8")
+        return action
+
+    def default_policy(self, node: Node) -> int:
         pass
     
     def tree_policy(self, v: Node) -> Node:
@@ -149,130 +170,27 @@ class Tree:
 
         # Return the new child
         return v_prime
-    
-    def best_child(node: Node) -> Node:
-        pass
-    
+
+    def best_child(self, node: Node, c: int) -> Node:
+        children = node.get_children()
+        ucb_arr = []
+
+        for child in children:
+            exploit = child.Q / child.N
+            explore = math.sqrt((2 * math.log(node.N)) / child.N)
+            ucb = exploit + (c * explore)
+            ucb_arr.append(ucb)
+
+        argmax = int(np.argmax(ucb_arr))
+        best_child = children[argmax]
+        return best_child
+
     # If parent is the same node, we are at root.
-    def backup(node: Node):
-        pass
-    
-   
-
-class NaiveAgent():
-    """This class describes the default Hex agent. It will randomly send a
-    valid move at each turn, and it will choose to swap with a 50% chance.
-    """
-
-    HOST = "127.0.0.1"
-    PORT = 1234
-
-    def __init__(self, board_size=11):
-        self.s = socket.socket(
-            socket.AF_INET, socket.SOCK_STREAM
-        )
-
-        self.s.connect((self.HOST, self.PORT))
-
-        self.board_size = board_size
-        self.board = []
-        self.colour = ""
-        self.turn_count = 0
-
-    def run(self):
-        """Reads data until it receives an END message or the socket closes."""
-
-        while True:
-            data = self.s.recv(1024)
-            if not data:
-                break
-            # print(f"{self.colour} {data.decode('utf-8')}", end="")
-            if (self.interpret_data(data)):
-                break
-
-        # print(f"Naive agent {self.colour} terminated")
-
-    def interpret_data(self, data):
-        """Checks the type of message and responds accordingly. Returns True
-        if the game ended, False otherwise.
-        """
-
-        messages = data.decode("utf-8").strip().split("\n")
-        messages = [x.split(";") for x in messages]
-        # print(messages)
-        for s in messages:
-            if s[0] == "START":
-                self.board_size = int(s[1])
-                self.colour = s[2]
-                self.board = [
-                    [0]*self.board_size for i in range(self.board_size)]
-
-                if self.colour == "R":
-                    self.make_move()
-
-            elif s[0] == "END":
-                return True
-
-            elif s[0] == "CHANGE":
-                if s[3] == "END":
-                    return True
-
-                elif s[1] == "SWAP":
-                    self.colour = self.opp_colour()
-                    if s[3] == self.colour:
-                        self.make_move()
-
-                elif s[3] == self.colour:
-                    action = [int(x) for x in s[1].split(",")]
-                    self.board[action[0]][action[1]] = self.opp_colour()
-
-                    self.make_move()
-
-        return False
-
-    def make_move(self):
-        """Makes a random move from the available pool of choices. If it can
-        swap, chooses to do so 50% of the time.
-        """
-
-        # print(f"{self.colour} making move")
-        if self.colour == "B" and self.turn_count == 0:
-            if choice([0, 1]) == 1:
-                self.s.sendall(bytes("SWAP\n", "utf-8"))
-            else:
-                # same as below
-                choices = []
-                for i in range(self.board_size):
-                    for j in range(self.board_size):
-                        if self.board[i][j] == 0:
-                            choices.append((i, j))
-                pos = choice(choices)
-                self.s.sendall(bytes(f"{pos[0]},{pos[1]}\n", "utf-8"))
-                self.board[pos[0]][pos[1]] = self.colour
-        else:
-            choices = []
-            for i in range(self.board_size):
-                for j in range(self.board_size):
-                    if self.board[i][j] == 0:
-                        choices.append((i, j))
-            pos = choice(choices)
-
-            self.s.sendall(bytes(f"{pos[0]},{pos[1]}\n", "utf-8"))
-            self.board[pos[0]][pos[1]] = self.colour
-        self.turn_count += 1
-
-    def opp_colour(self):
-        """Returns the char representation of the colour opposite to the
-        current one.
-        """
-        if self.colour == "R":
-            return "B"
-        elif self.colour == "B":
-            return "R"
-        else:
-            return "None"
+    def backup(self, node: Node, reward: int):
+        v = node
+        while v:
+            v.N += 1
+            v.Q = v.Q + reward
+            v = v.parent
 
 
-if (__name__ == "__main__"):
-    agent = NaiveAgent()
-    agent.run()
