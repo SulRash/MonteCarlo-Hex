@@ -69,10 +69,11 @@ class Node:
             # Check if tile is not occupied
             if tile.get_colour() is None:
                 valid_moves.append(m)
-        return valid_moves            
+                
+        return valid_moves    
 
 class Tree:
-    def __init__(self, boardsize: int = 11, root: Node):
+    def __init__(self, boardsize: int = 11, root: Node, c: Colour = Colour.BLUE):
         self.boardsize = boardsize
         self.TIME = 0
         self.c = 0
@@ -93,9 +94,20 @@ class Tree:
         action = bytes(f"{best_child.x},{best_child.y}\n", "utf-8")
         return action
 
-    def default_policy(self, node: Node) -> int:
-        pass
-    
+    def default_policy(self, v: Node) -> int:
+        # loop until a terminal node is reached.
+        while v.s.has_ended():
+            action = choice(v.get_valid_actions(self.boardsize, v.colour))
+            new_state = deepcopy(v.s)
+            action.move(new_state)
+        
+            v = Node(v, action, new_state, v.colour.opposite())
+        
+        if v.s.get_winner() == self.colour:
+            return 1
+        else:
+            return -1
+   
     def tree_policy(self, v: Node) -> Node:
         '''
         Chooses a node for game simulation.
