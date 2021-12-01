@@ -73,7 +73,7 @@ class Tree:
     def search(state: List[List["0" | str]]  = [[]]) -> str:
         pass
     
-    def default_policy(self, v: Node) -> Node:
+    def default_policy(self, v: Node) -> int:
         # loop until a terminal node is reached.
         while v.s.has_ended():
             action = choice(v.get_valid_actions(self.boardsize, v.colour))
