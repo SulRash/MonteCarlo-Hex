@@ -41,13 +41,14 @@ class Node:
         self.children: List[Node] = []
     
     # All valid moves in current state.
-    def get_children(self, board: List[List[str]], board_size: int) -> List[Node]:
+    def get_children(self, board_size: int) -> List[Node]:
         children = []
-        for i in range(board_size):
-            for j in range(board_size):
-                if board[i][j] == '0':
-                    child = Node(parent = self, x = i, y = j)
-                    children.append(child)
+        actions = self.get_valid_actions(board_size, self.colour)
+        for action in actions:
+            new_state = deepcopy(self.s)
+            action.move(new_state)
+            child = Node(self, action, new_state, self.colour.opposite())
+            children.append(child)
         return children
 
     def get_valid_actions(self, baord_size: int, c: Colour) -> List[Move]:
@@ -73,15 +74,16 @@ class Node:
         return valid_moves    
 
 class Tree:
-    def __init__(self, boardsize: int = 11, root: Node, c: Colour = Colour.BLUE):
+    def __init__(self, root: Node, boardsize: int = 11, colour: Colour = Colour.BLUE, c: int = 0):
         self.boardsize = boardsize
         self.TIME = 0
-        self.c = 0
+        self.colour = colour
         self.current_node = root
+        self.c = c
 
-
-    def search(self, state: List[List["0" | str]] = [[]]) -> bytes:
-        v0 = self.current_node
+    def search(self, state: str) -> bytes:
+        board = Board.from_string(state, self.boardsize)
+        v0 = Node(None, None, board, self.colour)
         while self.TIME > 0:
             v1 = self.tree_policy(v0)
             reward = self.default_policy(v1)
@@ -91,12 +93,12 @@ class Tree:
         # convert to string
         # set current_node to best_child
         self.current_node = best_child
-        action = bytes(f"{best_child.x},{best_child.y}\n", "utf-8")
-        return action
+        move_string = bytes(f"{best_child.a.x},{best_child.a.y}\n", "utf-8")
+        return move_string
 
     def default_policy(self, v: Node) -> int:
         # loop until a terminal node is reached.
-        while v.s.has_ended():
+        while not v.s.has_ended():
             action = choice(v.get_valid_actions(self.boardsize, v.colour))
             new_state = deepcopy(v.s)
             action.move(new_state)
