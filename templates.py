@@ -144,7 +144,7 @@ templates = {
     },
     
     "Edge Template 2": {
-        (  ): {
+        ( (-1, 0), (-1, 1) ): {
             "Intrusions": ( (-1, 0), (-1, 1) ),
             "Responses": {
                 # Intrusion Tile    # Response
@@ -153,7 +153,7 @@ templates = {
             }
         },
         
-        (  ): {
+        ( (0, -1), (1, -1) ): {
             "Intrusions": ( (0, -1), (1, -1) ),
             "Responses": {
                 # Intrusion Tile    # Response
@@ -162,7 +162,7 @@ templates = {
             }
         }, 
         
-        (  ): {
+        ( (-1, 1), (0, 1) ): {
             "Intrusions": ( (-1, 1), (0, 1) ),
             "Responses": {
                 # Intrusion Tile    # Response
@@ -171,7 +171,7 @@ templates = {
             }
         },
         
-        (  ): {
+        ( (1, -1), (1, 0) ): {
             "Intrusions": ( (1, -1), (1, 0) ),
             "Responses": {
                 # Intrusion Tile    # Response
