@@ -2,6 +2,7 @@ import socket
 from random import choice
 from time import sleep
 from typing import Tuple
+from MCT import Node, Tree
 
 
 class NaiveAgent():
@@ -23,6 +24,8 @@ class NaiveAgent():
         self.board = []
         self.colour = ""
         self.turn_count = 0
+        self.mct = MCT(self.board_size, self.colour, )
+        self.n_openings = 0
 
     def run(self):
         """Reads data until it receives an END message or the socket closes."""
@@ -75,10 +78,17 @@ class NaiveAgent():
 
         return False
 
-    def make_move(self, move: Tuple(int,int)):
+    def make_move(self):
         """
         (-1,-1) for swap, else play the move on the tile.
         """
+        # if turn_count < n
+            # if opponent swapped
+                # startegy for dealing w swap
+            # use opening moves
+       # elif n ==1 (init tree, call search)
+       # else call search
+        
 
         if self.colour == "B" and self.turn_count == 0 and move == (-1,-1):
             self.s.sendall(bytes("SWAP\n", "utf-8"))
