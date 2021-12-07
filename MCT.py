@@ -1,15 +1,13 @@
 from __future__ import annotations
 
-import socket
 from random import choice
-from time import sleep
 from copy import deepcopy
 import random
 from src.Board import Board
 from src.Move import Move
 from src.Colour import Colour
 
-from typing import List, Tuple
+from typing import List
 
 import math
 import numpy as np
@@ -27,15 +25,15 @@ class Node:
         self.parent = parent
 
         # Associated node
-        self.s = state
+        self.s: Board = state
         # Incoming action
-        self.a = action
+        self.a: Move = action
         # How many times node has been passed through.
-        self.N = 0
+        self.N: int = 0
         # Reward function, accumulated reward.
-        self.Q = 0
+        self.Q: int = 0
         # Player who made the incoming action leading to these node
-        self.colour = colour
+        self.colour: Colour = colour
 
         # List of all children
         self.children: List[Node] = []
@@ -185,14 +183,14 @@ class Tree:
         # Return the new child
         return v_prime
 
-    def best_child(self, node: Node, c: int) -> Node:
+    def best_child(self, node: Node) -> Node:
         children = node.get_children()
         ucb_arr = []
 
         for child in children:
             exploit = child.Q / child.N
             explore = math.sqrt((2 * math.log(node.N)) / child.N)
-            ucb = exploit + (c * explore)
+            ucb = exploit + (self.c * explore)
             ucb_arr.append(ucb)
 
         argmax = int(np.argmax(ucb_arr))
