@@ -73,12 +73,12 @@ class Node:
                 
         return valid_moves    
 
+
 class Tree:
-    def __init__(self, root: Node, boardsize: int = 11, colour: Colour = Colour.BLUE, c: int = 0):
+    def __init__(self, boardsize: int = 11, colour: Colour = Colour.BLUE, c: int = 0):
         self.boardsize = boardsize
         self.TIME = 0
         self.colour = colour
-        self.current_node = root
         self.c = c
 
     def search(self, state: str) -> bytes:
@@ -91,8 +91,6 @@ class Tree:
         best_child = self.best_child(v0, self.c)
         # derive action from best child
         # convert to string
-        # set current_node to best_child
-        self.current_node = best_child
         move_string = bytes(f"{best_child.a.x},{best_child.a.y}\n", "utf-8")
         return move_string
 

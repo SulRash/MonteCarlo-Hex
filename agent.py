@@ -3,6 +3,7 @@ from random import choice
 from time import sleep
 from typing import Tuple
 from MCT import Node, Tree
+from src.Colour import Colour
 
 
 class NaiveAgent():
@@ -24,8 +25,8 @@ class NaiveAgent():
         self.board = []
         self.colour = ""
         self.turn_count = 0
-        self.mct = MCT(self.board_size, self.colour, )
         self.n_openings = 0
+        self.board_string = ""
 
     def run(self):
         """Reads data until it receives an END message or the socket closes."""
@@ -67,10 +68,12 @@ class NaiveAgent():
 
                 elif s[1] == "SWAP":
                     self.colour = self.opp_colour()
+                    self.board_string = s[2]
                     if s[3] == self.colour:
                         self.make_move()
 
                 elif s[3] == self.colour:
+                    self.board_string = s[2]
                     action = [int(x) for x in s[1].split(",")]
                     self.board[action[0]][action[1]] = self.opp_colour()
 
@@ -82,20 +85,26 @@ class NaiveAgent():
         """
         (-1,-1) for swap, else play the move on the tile.
         """
-        # if turn_count < n
-            # if opponent swapped
-                # startegy for dealing w swap
-            # use opening moves
-       # elif n ==1 (init tree, call search)
-       # else call search
-        
 
-        if self.colour == "B" and self.turn_count == 0 and move == (-1,-1):
-            self.s.sendall(bytes("SWAP\n", "utf-8"))
+        if self.turn_count < self.n_openings:
+            # Opening book moves are handled here
+            # Including SWAP
+            pass
+        elif self.turn_count == self.n_openings:
+            self.mct = Tree(self.board_size, Colour.from_char(self.colour), 0)
+            move = self.mct.search(self.board_string)
+            self.s.sendall(move)
         else:
-            self.s.sendall(bytes(f"{move[0]},{move[1]}\n", "utf-8"))
-            self.board[move[0]][move[1]] = self.colour
+            move = self.mct.search(self.board_string)
+            self.s.sendall(move)
+
         self.turn_count += 1
+
+        # if self.colour == "B" and self.turn_count == 0 and move == (-1,-1):
+        #     self.s.sendall(bytes("SWAP\n", "utf-8"))
+        # else:
+        #     self.s.sendall(bytes(f"{move[0]},{move[1]}\n", "utf-8"))
+        #     self.board[move[0]][move[1]] = self.colour
 
     def opp_colour(self):
         """Returns the char representation of the colour opposite to the
