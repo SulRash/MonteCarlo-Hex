@@ -183,14 +183,14 @@ class Tree:
         # Return the new child
         return v_prime
 
-    def best_child(self, node: Node, c: int) -> Node:
+    def best_child(self, node: Node) -> Node:
         children = node.get_children()
         ucb_arr = []
 
         for child in children:
             exploit = child.Q / child.N
             explore = math.sqrt((2 * math.log(node.N)) / child.N)
-            ucb = exploit + (c * explore)
+            ucb = exploit + (self.c * explore)
             ucb_arr.append(ucb)
 
         argmax = int(np.argmax(ucb_arr))
