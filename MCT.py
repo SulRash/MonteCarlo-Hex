@@ -9,6 +9,8 @@ from src.Board import Board
 from src.Move import Move
 from src.Colour import Colour
 
+import time
+
 from typing import List, Tuple
 
 import math
@@ -77,14 +79,15 @@ class Node:
 class Tree:
     def __init__(self, boardsize: int = 11, colour: Colour = Colour.BLUE, c: int = 0):
         self.boardsize = boardsize
-        self.TIME = 0
+        self.TIME = 10
         self.colour = colour
         self.c = c
 
     def search(self, state: str) -> bytes:
+        t0 = time.time()
         board = Board.from_string(state, self.boardsize)
         v0 = Node(None, None, board, self.colour)
-        while self.TIME > 0:
+        while self.TIME > time.time() - t0:
             v1 = self.tree_policy(v0)
             reward = self.default_policy(v1)
             self.backup(v1, reward)
