@@ -53,7 +53,7 @@ class Node:
             children.append(child)
         return children
 
-    def get_valid_actions(self, baord_size: int, c: Colour) -> List[Move]:
+    def get_valid_actions(self, board_size: int, colour: Colour) -> List[Move]:
         '''
         Returns the list of all possible moves.
         '''
@@ -62,9 +62,9 @@ class Node:
         valid_moves: List[Move] = [] # Stores valid moves
 
         # Append all moves
-        for y in range(baord_size):
-            for x in range(baord_size):
-                all_moves.append(Move(colour=c, x=x, y=y))
+        for y in range(board_size):
+            for x in range(board_size):
+                all_moves.append(Move(colour=colour, x=x, y=y))
         
         for m in all_moves:
             # Get the corresponding tile
@@ -91,7 +91,7 @@ class Tree:
             v1 = self.tree_policy(v0)
             reward = self.default_policy(v1)
             self.backup(v1, reward)
-        best_child = self.best_child(v0, self.c)
+        best_child = self.best_child(v0)
         # derive action from best child
         # convert to string
         move_string = bytes(f"{best_child.a.x},{best_child.a.y}\n", "utf-8")
@@ -120,10 +120,10 @@ class Tree:
         while not v.s.has_ended():
             
             # Checks if v is not fully expanded
-            if v.get_valid_actions(
+            if len(v.get_valid_actions(
                 board_size = self.boardsize,
                 colour = v.colour.opposite()
-            ) != len(v.children): 
+            )) != len(v.children):
                 return self.expand(v)
             
             # Choose next node with best_child function
@@ -138,7 +138,7 @@ class Tree:
         Returns all untried actions of a node v.
         '''
 
-        all_valid_actions = v.get_valid_actions() # Get all valid actions from v
+        all_valid_actions = v.get_valid_actions(self.boardsize, self.colour) # Get all valid actions from v
         
         # Check if v has children
         if len(v.children) != 0:
@@ -187,12 +187,16 @@ class Tree:
         return v_prime
 
     def best_child(self, node: Node) -> Node:
-        children = node.get_children()
+        children = node.get_children(self.boardsize)
         ucb_arr = []
 
         for child in children:
-            exploit = child.Q / child.N
-            explore = math.sqrt((2 * math.log(node.N)) / child.N)
+            if child.N == 0:
+                exploit = 0
+                explore = 0
+            else:
+                exploit = child.Q / child.N
+                explore = math.sqrt((2 * math.log(node.N)) / child.N)
             ucb = exploit + (self.c * explore)
             ucb_arr.append(ucb)
 

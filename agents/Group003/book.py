@@ -1,6 +1,6 @@
 from typing import List, Tuple
 
-from templates import templates
+from agents.Group003.templates import templates
 
 import numpy as np
 
