@@ -1,14 +1,12 @@
 import socket
-from random import choice
-from time import sleep
-from typing import Tuple
-from MCT import Node, Tree
+import math
+from uct_algorithm import UCT
 from src.Colour import Colour
 
 
-class NaiveAgent():
-    """This class describes the default Hex agent. It will randomly send a
-    valid move at each turn, and it will choose to swap with a 50% chance.
+class Agent003():
+    """
+    This class describes Group 3 agent based on UCT.
     """
 
     HOST = "127.0.0.1"
@@ -27,6 +25,11 @@ class NaiveAgent():
         self.turn_count = 0
         self.n_openings = 0
         self.board_string = ""
+        self.uct = UCT(
+            board_size = self.board_size,
+            colour= Colour.from_char(self.colour), 
+            c = 1/math.sqrt(2)
+        )
 
     def run(self):
         """Reads data until it receives an END message or the socket closes."""
@@ -53,6 +56,7 @@ class NaiveAgent():
             if s[0] == "START":
                 self.board_size = int(s[1])
                 self.colour = s[2]
+                self.uct.colour = Colour.from_char(s[2])
                 self.board = [
                     [0]*self.board_size for i in range(self.board_size)]
 
@@ -68,6 +72,7 @@ class NaiveAgent():
 
                 elif s[1] == "SWAP":
                     self.colour = self.opp_colour()
+                    self.uct.colour = self.uct.colour.opposite()
                     self.board_string = s[2]
                     if s[3] == self.colour:
                         self.make_move()
@@ -86,28 +91,19 @@ class NaiveAgent():
         (-1,-1) for swap, else play the move on the tile.
         """
 
-        if self.turn_count < self.n_openings:
+        if self.turn_count < self.n_openings and self.board_size == 11:
             # Opening book moves are handled here
             # Including SWAP
             pass
-        elif self.turn_count == self.n_openings:
-            self.mct = Tree(self.board_size, Colour.from_char(self.colour), 0)
-            move = self.mct.search(self.board_string)
-            self.s.sendall(move)
         else:
-            move = self.mct.search(self.board_string)
-            self.s.sendall(move)
+            action = self.uct.search(self.board_string)
+            self.s.sendall(action)
 
         self.turn_count += 1
 
-        # if self.colour == "B" and self.turn_count == 0 and move == (-1,-1):
-        #     self.s.sendall(bytes("SWAP\n", "utf-8"))
-        # else:
-        #     self.s.sendall(bytes(f"{move[0]},{move[1]}\n", "utf-8"))
-        #     self.board[move[0]][move[1]] = self.colour
-
     def opp_colour(self):
-        """Returns the char representation of the colour opposite to the
+        """
+        Returns the char representation of the colour opposite to the
         current one.
         """
         if self.colour == "R":
@@ -119,5 +115,5 @@ class NaiveAgent():
 
 
 if (__name__ == "__main__"):
-    agent = NaiveAgent()
+    agent = Agent003()
     agent.run()
