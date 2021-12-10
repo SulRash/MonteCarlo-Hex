@@ -32,6 +32,8 @@ class UCT:
 
         # derive action from best child
         best_child = self.best_child(v0)
+        print(v0.N)
+        print(best_child.N)
         
         # convert to string
         move_string = bytes(f"{best_child.a.x},{best_child.a.y}\n", "utf-8")
@@ -60,15 +62,21 @@ class UCT:
         while not v.s.has_ended():
             
             # Checks if v is not fully expanded
-            if len(v.get_valid_actions(
+            valid_actions = v.get_valid_actions(
                 board_size = self.board_size,
                 colour = v.colour.opposite()
-            )) != len(v.children):
+            )
+            if len(valid_actions) != len(v.children):
+                # print(len(valid_actions))
+                # print('Expand')
                 return self.expand(v)
             
             # Choose next node with best_child function
             else:
+                # print('Choose')
                 v = self.best_child(v)
+                # print(v.a.x)
+                # print(v.a.y)
         
         # Returns v when it is a terminal node
         return v
@@ -104,10 +112,7 @@ class UCT:
         next_player = v.colour.opposite()
         untried_actions = self.get_untried_actions(v)
         
-        if len(untried_actions) == 1:
-            a = untried_actions[0]
-        else: # Pick a random action
-            a = untried_actions[random.randint(0, len(untried_actions)-1)]
+        a = untried_actions[random.randint(0, len(untried_actions)-1)]
         
         # Create a copy of state s
         s_prime = deepcopy(v.s)
@@ -142,6 +147,8 @@ class UCT:
 
         argmax = int(np.argmax(ucb_arr))
         best_child = children[argmax]
+
+        print(ucb_arr)
         return best_child
 
     # If parent is the same node, we are at root.
@@ -149,6 +156,7 @@ class UCT:
         v = node
         while v:
             v.N += 1
+            print(v.N)
             v.Q = v.Q + reward
             v = v.parent
 

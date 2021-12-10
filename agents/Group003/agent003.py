@@ -3,7 +3,6 @@ import math
 from uct_algorithm import UCT
 from src.Colour import Colour
 
-
 class Agent003():
     """
     This class describes Group 3 agent based on UCT.
@@ -55,6 +54,7 @@ class Agent003():
         for s in messages:
             if s[0] == "START":
                 self.board_size = int(s[1])
+                self.uct.board_size = self.board_size
                 self.colour = s[2]
                 self.uct.colour = Colour.from_char(s[2])
                 self.board = [
@@ -90,6 +90,8 @@ class Agent003():
         """
         (-1,-1) for swap, else play the move on the tile.
         """
+        print(self.colour)
+        print(self.uct.board_size)
 
         if self.turn_count < self.n_openings and self.board_size == 11:
             # Opening book moves are handled here
@@ -112,7 +114,6 @@ class Agent003():
             return "R"
         else:
             return "None"
-
 
 if (__name__ == "__main__"):
     agent = Agent003()
