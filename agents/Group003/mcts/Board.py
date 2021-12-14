@@ -1,5 +1,5 @@
-from src.Tile import Tile
-from src.Colour import Colour
+from mcts.Tile import Tile
+from mcts.Colour import Colour
 
 
 class Board:

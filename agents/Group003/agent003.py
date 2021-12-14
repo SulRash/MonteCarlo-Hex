@@ -1,7 +1,7 @@
 import socket
 import math
-from uct_algorithm import UCT
-from src.Colour import Colour
+from mcts.uct_algorithm import UCT
+from mcts.Colour import Colour
 
 class Agent003():
     """

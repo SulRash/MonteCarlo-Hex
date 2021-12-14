@@ -1,4 +1,4 @@
-from src.Colour import Colour
+from mcts.Colour import Colour
 
 
 class Tile:

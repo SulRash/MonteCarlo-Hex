@@ -1,9 +1,9 @@
 from __future__ import annotations
 from copy import deepcopy
 from typing import List
-from src.Board import Board
-from src.Move import Move
-from src.Colour import Colour
+from mcts.Board import Board
+from mcts.Move import Move
+from mcts.Colour import Colour
 
 class Node:
 
@@ -31,18 +31,11 @@ class Node:
         # List of all children
         self.children: List[Node] = []
     
-    def get_children(self, board_size: int) -> List[Node]:
+    def get_children(self) -> List[Node]:
         '''
         Returns all children nodes.
         '''
-        children = []
-        actions = self.get_valid_actions(board_size, self.colour)
-        for action in actions:
-            new_state = deepcopy(self.s)
-            action.move(new_state)
-            child = Node(self, action, new_state, self.colour.opposite())
-            children.append(child)
-        return children
+        return self.children
 
     def get_valid_actions(self, board_size: int, colour: Colour) -> List[Move]:
         '''

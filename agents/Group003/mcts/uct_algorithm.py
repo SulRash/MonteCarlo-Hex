@@ -7,15 +7,15 @@ import time
 from typing import List
 import math
 import numpy as np
-from node import Node
-from src.Board import Board
-from src.Move import Move
-from src.Colour import Colour
+from mcts.node import Node
+from mcts.Board import Board
+from mcts.Move import Move
+from mcts.Colour import Colour
 
 class UCT:
     def __init__(self, board_size: int = 11, colour: Colour = Colour.BLUE, c: int = 1/math.sqrt(2)):
         self.board_size = board_size
-        self.TIME = 8
+        self.TIME = 9
         self.colour = colour
         self.c = c
 
@@ -32,11 +32,11 @@ class UCT:
 
         # derive action from best child
         best_child = self.best_child(v0)
-        print(v0.N)
-        print(best_child.N)
         
         # convert to string
         move_string = bytes(f"{best_child.a.x},{best_child.a.y}\n", "utf-8")
+        # for c in v0.children:
+        #     print(c.N)
         return move_string
 
     def default_policy(self, v: Node) -> int:
@@ -132,23 +132,18 @@ class UCT:
         return v_prime
 
     def best_child(self, node: Node) -> Node:
-        children = node.get_children(self.board_size)
+        children = node.get_children()
         ucb_arr = []
 
         for child in children:
-            if child.N == 0:
-                exploit = 0
-                explore = 0
-            else:
-                exploit = child.Q / child.N
-                explore = math.sqrt((2 * math.log(node.N)) / child.N)
+            exploit = child.Q / child.N
+            explore = math.sqrt((2 * math.log(node.N)) / child.N)
             ucb = exploit + 2 * self.c * explore
             ucb_arr.append(ucb)
 
         argmax = int(np.argmax(ucb_arr))
         best_child = children[argmax]
 
-        print(ucb_arr)
         return best_child
 
     # If parent is the same node, we are at root.
@@ -156,7 +151,6 @@ class UCT:
         v = node
         while v:
             v.N += 1
-            print(v.N)
             v.Q = v.Q + reward
             v = v.parent
 
