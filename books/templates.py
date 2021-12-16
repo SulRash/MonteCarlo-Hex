@@ -181,7 +181,7 @@ templates = {
         }
     },
     # Update like the rest in terms of formatting.
-    "Connections": [
+    "Connections": {
         
         """
             When checking for connections, we check for the following tuple:
@@ -190,48 +190,58 @@ templates = {
                 ( (Relative to player position's empty tile), (Relative to player position's empty tile), (Players own other tiles) )
         """
         
-        ( (-1, 0), (0, -1), (-1, -1) ),
-        ( (1, -1), (0, -1), (1, -2) ),
-        ( (1, -1), (1, 0), (2, -1) ),
-        ( (1, 0), (0, 1), (1, 1) ),
-        ( (-1, 1), (0, 1), (-1, 2) ),
-        ( (-1, 1), (-1, 0), (-2, 1) )
-        
-    ],
-    
-    "Ladder 3rd Row": {
-        # Red player
-        ( (0, -1), (1, -1), (2, -3) ): {
-            "Intrusions": ( (0, -1), (1, -1), (2, -3), (1, -1) ),
+        ( (-1, 0), (0, -1), (-1, -1) ): {
+            "Intrusions": ( (-1, 0), (0, -1) ),
             "Responses": {
-                # Intrusion Tile    # Response
-                
+                # Intrusion Tile     # Response
+                (-1, 0):             (0, -1),
+                (0, -1):             (-1, 0)
             }
         },
         
-        (  ): {
-            "Intrusions": (  ),
+        ( (1, -1), (0, -1), (1, -2) ): {
+            "Intrusions": ( (1, -1), (0, -1) ),
             "Responses": {
-                # Intrusion Tile    # Response
-                
+                # Intrusion Tile     # Response
+                (1, -1):             (0, -1),
+                (0, -1):             (1, -1)
             }
         },
         
-        (  ): {
-            "Intrusions": (  ),
+        ( (1, -1), (1, 0), (2, -1) ): {
+            "Intrusions": ( (1, -1), (1, 0) ),
             "Responses": {
-                # Intrusion Tile    # Response
-                
+                # Intrusion Tile     # Response
+                (1, -1):             (1, 0),
+                (1, 0):              (1, -1)
             }
         },
         
-        (  ): {
-            "Intrusions": (  ),
+        ( (1, 0), (0, 1), (1, 1) ): {
+            "Intrusions": ( (1, 0), (0, 1) ),
             "Responses": {
-                # Intrusion Tile    # Response
-                
+                # Intrusion Tile     # Response
+                (1, 0):             (0, 1),
+                (0, 1):             (1, 0)
             }
-        }
-    }    
-
+        },
+        
+        ( (-1, 1), (0, 1), (-1, 2) ): {
+            "Intrusions": ( (-1, 1), (0, 1) ),
+            "Responses": {
+                # Intrusion Tile     # Response
+                (-1, 1):             (0, 1),
+                (0, 1):              (-1, 1)
+            }
+        },
+        
+        ( (-1, 1), (-1, 0), (-2, 1) ): {
+            "Intrusions": ( (-1, 1), (-1, 0) ),
+            "Responses": {
+                # Intrusion Tile     # Response
+                (-1, 1):             (-1, 0),
+                (-1, 0):             (-1, 1)
+            }
+        }   
+    }  
 }   
