@@ -1,7 +1,7 @@
 from typing import List, Tuple
 
-from books.templates import templates
-from books.openings import openings
+from templates import templates
+from openings import openings
 
 import numpy as np
 import random

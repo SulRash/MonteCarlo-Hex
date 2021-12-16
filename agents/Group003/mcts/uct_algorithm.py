@@ -1,106 +1,48 @@
 from __future__ import annotations
 
-import socket
 from random import choice
-from time import sleep
 from copy import deepcopy
 import random
-from src.Board import Board
-from src.Move import Move
-from src.Colour import Colour
-
 import time
-
-from typing import List, Tuple
-
+from typing import List
 import math
 import numpy as np
+from mcts.node import Node
+from mcts.Board import Board
+from mcts.Move import Move
+from mcts.Colour import Colour
 
-class Node:
-
-    # Look into type of state.
-    def __init__(
-        self,
-        parent: Node,
-        action: Move,
-        state: Board,
-        colour: Colour,
-    ) -> None:
-        self.parent = parent
-
-        # Associated node
-        self.s = state
-        # Incoming action
-        self.a = action
-        # How many times node has been passed through.
-        self.N = 0
-        # Reward function, accumulated reward.
-        self.Q = 0
-        # Player who made the incoming action leading to these node
-        self.colour = colour
-
-        # List of all children
-        self.children: List[Node] = []
-    
-    # All valid moves in current state.
-    def get_children(self, board_size: int) -> List[Node]:
-        children = []
-        actions = self.get_valid_actions(board_size, self.colour)
-        for action in actions:
-            new_state = deepcopy(self.s)
-            action.move(new_state)
-            child = Node(self, action, new_state, self.colour.opposite())
-            children.append(child)
-        return children
-
-    def get_valid_actions(self, baord_size: int, c: Colour) -> List[Move]:
-        '''
-        Returns the list of all possible moves.
-        '''
-
-        all_moves: List[Move] = [] # Stores all moves
-        valid_moves: List[Move] = [] # Stores valid moves
-
-        # Append all moves
-        for y in range(baord_size):
-            for x in range(baord_size):
-                all_moves.append(Move(colour=c, x=x, y=y))
-        
-        for m in all_moves:
-            # Get the corresponding tile
-            tile = self.s.get_tiles()[m.x][m.y]
-            # Check if tile is not occupied
-            if tile.get_colour() is None:
-                valid_moves.append(m)
-                
-        return valid_moves    
-
-
-class Tree:
-    def __init__(self, boardsize: int = 11, colour: Colour = Colour.BLUE, c: int = 0):
-        self.boardsize = boardsize
-        self.TIME = 10
+class UCT:
+    def __init__(self, board_size: int = 11, colour: Colour = Colour.BLUE, c: int = 1/math.sqrt(2)):
+        self.board_size = board_size
+        self.TIME = 9
         self.colour = colour
         self.c = c
 
     def search(self, state: str) -> bytes:
         t0 = time.time()
-        board = Board.from_string(state, self.boardsize)
+
+        board = Board.from_string(state, self.board_size)
         v0 = Node(None, None, board, self.colour)
-        while self.TIME > time.time() - t0:
+        
+        while self.TIME > (time.time() - t0):
             v1 = self.tree_policy(v0)
             reward = self.default_policy(v1)
             self.backup(v1, reward)
-        best_child = self.best_child(v0, self.c)
+
         # derive action from best child
+        best_child = self.best_child(v0)
+        
         # convert to string
         move_string = bytes(f"{best_child.a.x},{best_child.a.y}\n", "utf-8")
+        # for c in v0.children:
+        #     print(c.N)
         return move_string
 
     def default_policy(self, v: Node) -> int:
         # loop until a terminal node is reached.
         while not v.s.has_ended():
-            action = choice(v.get_valid_actions(self.boardsize, v.colour))
+            action = choice(v.get_valid_actions(self.board_size, v.colour))
             new_state = deepcopy(v.s)
             action.move(new_state)
         
@@ -120,15 +62,21 @@ class Tree:
         while not v.s.has_ended():
             
             # Checks if v is not fully expanded
-            if v.get_valid_actions(
-                board_size = self.boardsize,
+            valid_actions = v.get_valid_actions(
+                board_size = self.board_size,
                 colour = v.colour.opposite()
-            ) != len(v.children): 
+            )
+            if len(valid_actions) != len(v.children):
+                # print(len(valid_actions))
+                # print('Expand')
                 return self.expand(v)
             
             # Choose next node with best_child function
             else:
+                # print('Choose')
                 v = self.best_child(v)
+                # print(v.a.x)
+                # print(v.a.y)
         
         # Returns v when it is a terminal node
         return v
@@ -138,7 +86,7 @@ class Tree:
         Returns all untried actions of a node v.
         '''
 
-        all_valid_actions = v.get_valid_actions() # Get all valid actions from v
+        all_valid_actions = v.get_valid_actions(self.board_size, self.colour) # Get all valid actions from v
         
         # Check if v has children
         if len(v.children) != 0:
@@ -164,10 +112,7 @@ class Tree:
         next_player = v.colour.opposite()
         untried_actions = self.get_untried_actions(v)
         
-        if len(untried_actions) == 1:
-            a = untried_actions[0]
-        else: # Pick a random action
-            a = untried_actions[random.randint(0, len(untried_actions)-1)]
+        a = untried_actions[random.randint(0, len(untried_actions)-1)]
         
         # Create a copy of state s
         s_prime = deepcopy(v.s)
@@ -193,11 +138,12 @@ class Tree:
         for child in children:
             exploit = child.Q / child.N
             explore = math.sqrt((2 * math.log(node.N)) / child.N)
-            ucb = exploit + (self.c * explore)
+            ucb = exploit + 2 * self.c * explore
             ucb_arr.append(ucb)
 
         argmax = int(np.argmax(ucb_arr))
         best_child = children[argmax]
+
         return best_child
 
     # If parent is the same node, we are at root.
