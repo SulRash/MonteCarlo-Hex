@@ -92,7 +92,9 @@ class TemplateBook():
         """
         x, y = tile_coords
         if self.board[x,y] != self.colour and (x,y) in self.responses:
-            return self.responses[(x,y)]
+            move = self.responses[(x,y)]
+            del self.responses[(x,y)]
+            return move
         self.board[x,y] = self.colour
         self.filled_board[x,y] = self.colour
         

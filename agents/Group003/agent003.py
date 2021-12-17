@@ -91,7 +91,6 @@ class Agent003():
                     self.board_string = s[2]
                     action = [int(x) for x in s[1].split(",")]
                     self.opponent_move = action
-                    print(action)
                     self.board[action[0]][action[1]] = self.opp_colour()
 
                     self.make_move()
@@ -117,7 +116,6 @@ class Agent003():
                 self.template_book = TemplateBook(self.board, self.colour)
                 self.init_template = 0
             move = self.template_book.update_board(self.opponent_move)
-            print(self.template_book.colour, self.colour)
             if move == None:
                 action = self.uct.search(self.board_string, self.turn_count)
                 self.s.sendall(action)
@@ -125,7 +123,7 @@ class Agent003():
                 action = action[0].split(",")
                 self.previous_move = (int(action[0]), int(action[1]))
                 self.template_book.check_for_all((self.previous_move[0], self.previous_move[1]))
-            elif self.board[move[0], move[1]] != "0":
+            elif self.board[move[0]][move[1]] == "0":
                 self.template_book.check_for_all((move[0], move[1]))
                 self.s.sendall(bytes(f"{move[0]},{move[1]}\n", "utf-8"))
             else:
