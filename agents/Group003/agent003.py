@@ -23,13 +23,15 @@ class Agent003():
         self.board = []
         self.colour = ""
         self.turn_count = 0
-        self.n_openings = 0
+        self.global_turn = 0
         self.board_string = ""
         self.uct = UCT(
             board_size = self.board_size,
             colour= Colour.from_char(self.colour), 
             c = 1/math.sqrt(2)
         )
+        
+        self.init_template = 1
 
     def run(self):
         """Reads data until it receives an END message or the socket closes."""
@@ -66,9 +68,6 @@ class Agent003():
                     self.make_move()
                 else:
                     self.opening_book = OpeningBook(self.board, False)
-                
-                self.template_book = TemplateBook(self.board, self.colour)
-                
 
             elif s[0] == "END":
                 return True
@@ -92,6 +91,7 @@ class Agent003():
                     self.board_string = s[2]
                     action = [int(x) for x in s[1].split(",")]
                     self.opponent_move = action
+                    print(action)
                     self.board[action[0]][action[1]] = self.opp_colour()
 
                     self.make_move()
@@ -107,18 +107,40 @@ class Agent003():
             if action == True:
                 self.s.sendall(bytes(f"-1,-1\n", "utf-8"))
             elif action == False:
-                action = self.uct.search(self.board_string)
+                action = self.uct.search(self.board_string, self.turn_count)
                 self.s.sendall(action)
             else:    
                 self.s.sendall(bytes(f"{action[0]},{action[1]}\n", "utf-8"))
         else:
-            action = self.uct.search(self.board_string)
-            self.s.sendall(action)
-            #action = action.decode("utf-8").strip().split("\n")
-            #print(action)
-            #self.previous_move = (int(action[0][0]), int(action[0][2]))
+            
+            if self.init_template:
+                self.template_book = TemplateBook(self.board, self.colour)
+                self.init_template = 0
+            move = self.template_book.update_board(self.opponent_move)
+            print(self.template_book.colour, self.colour)
+            if move == None:
+                action = self.uct.search(self.board_string, self.turn_count)
+                self.s.sendall(action)
+                action = action.decode("utf-8").strip().split("\n")
+                action = action[0].split(",")
+                self.previous_move = (int(action[0]), int(action[1]))
+                self.template_book.check_for_all((self.previous_move[0], self.previous_move[1]))
+            elif self.board[move[0], move[1]] != "0":
+                self.template_book.check_for_all((move[0], move[1]))
+                self.s.sendall(bytes(f"{move[0]},{move[1]}\n", "utf-8"))
+            else:
+                action = self.uct.search(self.board_string, self.turn_count)
+                self.s.sendall(action)
+                action = action.decode("utf-8").strip().split("\n")
+                action = action[0].split(",")
+                self.previous_move = (int(action[0]), int(action[1]))
+                self.template_book.check_for_all((self.previous_move[0], self.previous_move[1]))
+                
+            print(self.template_book.responses)
+                
 
         self.turn_count += 1
+        self.global_turn += 2
 
     def opp_colour(self):
         """

@@ -97,6 +97,7 @@ class TemplateBook():
         self.filled_board[x,y] = self.colour
         
     def check_for_all(self, coords: Tuple[int, int]) -> List[List[int or str]]:
+        self.board[coords[0], coords[1]] = self.colour
         self.check_for_connection(coords)
         self.check_for_bottleneck(coords)
         self.check_for_edge_31b(coords)
@@ -123,7 +124,7 @@ class TemplateBook():
             #print("Checking", tile_coords[0] + key[0][0], tile_coords[1] + key[0][1], "is 0", tile_coords[0] + key[1][0], tile_coords[1] + key[1][1], "is 0", tile_coords[0] + key[2][0], tile_coords[1] + key[2][1], "is R")
             # If index out of range, continue since the pattern doesn't fit.
             # Runs conditional to check for validity of pattern. (Runs according to how bottlenecks are defined in dictionary above)
-            if self.check_validity(tile_coords, key, ["0", "0", self.board[x, y]]):
+            if self.check_validity(tile_coords, key, ["0", "0", self.colour]):
                 for x2, y2 in self.templates["Connections"][key]["Responses"]:
                     if x+x2 < 0 or y+y2 < 0:
                         #print("Connection continued... (not found)")
@@ -160,7 +161,7 @@ class TemplateBook():
             
             # If index out of range, continue since the pattern doesn't fit.
             # Runs conditional to check for validity of pattern. (Runs according to how bottlenecks are defined in dictionary above)
-            if self.check_validity(tile_coords, key, ["0", "0", self.board[x, y], self.board[x,y], opposite]):
+            if self.check_validity(tile_coords, key, ["0", "0", self.colour, self.colour, opposite]):
                 for x2, y2 in self.templates["Bottleneck"][key]["Responses"]:
                     if x+x2 < 0 or y+y2 < 0:
                         continue

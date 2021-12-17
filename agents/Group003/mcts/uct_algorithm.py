@@ -16,11 +16,12 @@ from mcts.Colour import Colour
 class UCT:
     def __init__(self, board_size: int = 11, colour: Colour = Colour.BLUE, c: int = 1/math.sqrt(2)):
         self.board_size = board_size
-        self.TIME = 4
+        self.TIME = 8 
         self.colour = colour
         self.c = c
 
-    def search2(self, state: str) -> bytes:
+    def search2(self, state: str, t: int) -> bytes:
+        self.TIME = min(12-0.3*(t-1), 1)
         t0 = time.time()
 
         board = Board.from_string(state, self.board_size)
@@ -33,6 +34,8 @@ class UCT:
 
         # derive action from best child
         best_child = self.best_child(v0)
+        
+        print(len(v0.children))
         
         # convert to string
         move_string = bytes(f"{best_child.a.x},{best_child.a.y}\n", "utf-8")
@@ -47,7 +50,8 @@ class UCT:
             self.backup(v1, reward)
         return v0.children, v0.N
 
-    def search(self, state: str) -> bytes:
+    def search(self, state: str, t: int) -> bytes:
+        self.TIME = max(12-0.3*(t-1), 1)
         board = Board.from_string(state, self.board_size)
         v0 = Node(None, None, board, self.colour)
         
@@ -59,6 +63,7 @@ class UCT:
             acum_rew.append(child[1])
             v0.children += child[0]
         v0.N = sum(acum_rew)/len(acum_rew)
+        print(len(v0.children))
         
         # derive action from best child
         best_child = self.best_child(v0)
