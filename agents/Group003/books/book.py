@@ -1,7 +1,7 @@
 from typing import List, Tuple
 
-from templates import templates
-from openings import openings
+from books.templates import templates
+from books.openings import openings
 
 import numpy as np
 import random
@@ -9,11 +9,11 @@ import random
 # x is up and down and y is left and right.
 class OpeningBook():
     
-    def __init__(self, board_size, board, first: bool) -> None:
-        self.board_size = board_size
+    def __init__(self, board, first: bool) -> None:
         self.board = board
         self.first = first
         self.current_move = 0
+        self.flag = True
         
     def get_opening(self, opponent_move: Tuple[int, int] = None) -> Tuple[int, int] or bool:
         """
@@ -38,7 +38,7 @@ class OpeningBook():
                 return False
                     
         else:
-            if self.swap(opponent_move):
+            if self.flag and self.swap(opponent_move):
                 return True
             else:
                 return openings[2]["Move"]
@@ -77,7 +77,7 @@ class TemplateBook():
         #Can be either "R" or "B"
         self.colour = colour
     
-    def update_board(self, board: List[List[str]]) -> None or Tuple[int, int]:
+    def update_board(self, tile_coords: Tuple[int, int]) -> None or Tuple[int, int]:
         """
         Updates board by checking which tiles are new and finding out if any patterns are found.
 
@@ -90,10 +90,11 @@ class TemplateBook():
         To-Do:
         Idea for optimization: When our agent plays a move we should calculate more templates since our timer is not being used.
         """
-        board = np.array(board)
-        x, y = int(np.where((self.board == board).all(axis=1) == False)[0]), int(np.where((self.board == board).all(axis=0) == False)[0])
+        x, y = tile_coords
         if self.board[x,y] != self.colour and (x,y) in self.responses:
             return self.responses[(x,y)]
+        self.board[x,y] = self.colour
+        self.filled_board[x,y] = self.colour
         
     def check_for_all(self, coords: Tuple[int, int]) -> List[List[int or str]]:
         self.check_for_connection(coords)
@@ -115,18 +116,22 @@ class TemplateBook():
         
         Coords is the most recently played move.
         """
+        #print("Checking for connection...")
         x, y = tile_coords
         # Loop over all keys to check all possible bottlenecks.
         for key in self.templates["Connections"]:
+            #print("Checking", tile_coords[0] + key[0][0], tile_coords[1] + key[0][1], "is 0", tile_coords[0] + key[1][0], tile_coords[1] + key[1][1], "is 0", tile_coords[0] + key[2][0], tile_coords[1] + key[2][1], "is R")
             # If index out of range, continue since the pattern doesn't fit.
-            try:
-                # Runs conditional to check for validity of pattern. (Runs according to how bottlenecks are defined in dictionary above)
-                if self.check_validity(tile_coords, key, ["0", "0", self.board[x, y]]):
-                    for x2, y2 in self.templates["Connections"][key]["Responses"]:
+            # Runs conditional to check for validity of pattern. (Runs according to how bottlenecks are defined in dictionary above)
+            if self.check_validity(tile_coords, key, ["0", "0", self.board[x, y]]):
+                for x2, y2 in self.templates["Connections"][key]["Responses"]:
+                    if x+x2 < 0 or y+y2 < 0:
+                        #print("Connection continued... (not found)")
+                        continue
+                    else:
+                        #print("Connection found!")
                         self.update_ingame_info("Connections", tile_coords, (x2, y2), key)
-                    break        
-            except IndexError:
-                continue
+                break        
     
     def check_for_bottleneck(self, tile_coords: Tuple[int, int]) -> None:
         """
@@ -154,15 +159,15 @@ class TemplateBook():
         for key in self.templates["Bottleneck"]:
             
             # If index out of range, continue since the pattern doesn't fit.
-            try:
-                # Runs conditional to check for validity of pattern. (Runs according to how bottlenecks are defined in dictionary above)
-                if self.check_validity(tile_coords, key, ["0", "0", self.board[x, y], self.board[x,y], opposite]):
-                    for x2, y2 in self.templates["Bottleneck"][key]["Responses"]:
+            # Runs conditional to check for validity of pattern. (Runs according to how bottlenecks are defined in dictionary above)
+            if self.check_validity(tile_coords, key, ["0", "0", self.board[x, y], self.board[x,y], opposite]):
+                for x2, y2 in self.templates["Bottleneck"][key]["Responses"]:
+                    if x+x2 < 0 or y+y2 < 0:
+                        continue
+                    else:
                         self.update_ingame_info("Bottleneck", tile_coords, (x2, y2), key)
-                    break        
-            except IndexError:
-                continue
-            
+                break        
+        
     def check_for_edge_31b(self, tile_coords: Tuple[int, int]) -> None:
         """
         Checks for the following pattern:
@@ -177,15 +182,16 @@ class TemplateBook():
         Args:
             tile_coords (Tuple[int, int]): Coordinates of tile checking.
         """
+        x,y = tile_coords
         if tile_coords[0] - 3 == 0 or tile_coords[1] - 3 == 0:
             for key in self.templates["Edge Template 31b"]:
-                try:
-                    if self.check_validity(tile_coords, key, ["0", "0", "0", "0", "0", "0", "0", "0", "0", "0"]):
-                        for x2, y2 in self.templates["Edge Template 31b"][key]["Responses"]:
+                if self.check_validity(tile_coords, key, ["0", "0", "0", "0", "0", "0", "0", "0", "0", "0"]):
+                    for x2, y2 in self.templates["Edge Template 31b"][key]["Responses"]:
+                        if x+x2 < 0 or y+y2 < 0:
+                            continue
+                        else:
                             self.update_ingame_info("Edge Template 31b", tile_coords, (x2, y2), key)
-                        break
-                except IndexError:
-                    continue
+                    break
     
     def check_for_edge_2(self, tile_coords: Tuple[int, int]) -> None:
         """
@@ -197,15 +203,16 @@ class TemplateBook():
         Args:
             tile_coords (Tuple[int, int]): Coordinates of tile checking.
         """
+        x,y = tile_coords
         if tile_coords[0] - 2 == 0 or tile_coords[1] - 2 == 0:
             for key in self.templates["Edge Template 2"]:
-                try:
-                    if self.check_validity(tile_coords, key, ["0", "0"]):
-                        for x2, y2 in self.templates["Edge Template 2"][key]["Responses"]:
+                if self.check_validity(tile_coords, key, ["0", "0"]):
+                    for x2, y2 in self.templates["Edge Template 2"][key]["Responses"]:
+                        if x+x2 < 0 or y+y2 < 0:
+                            continue
+                        else:
                             self.update_ingame_info("Edge Template 2", tile_coords, (x2, y2), key)
-                        break
-                except IndexError:
-                    continue
+                    break
                 
     def check_validity(self, tile_coords: Tuple[int, int], to_check: Tuple[Tuple[int, int]], desired_result = List[str]) -> bool:
         """
@@ -222,9 +229,12 @@ class TemplateBook():
         """
         x, y = tile_coords
         for i in range(len(to_check)):
-            if self.board[x + to_check[i][0], y + to_check[i][1]] == desired_result[i]:
-                continue
-            else:
+            try:
+                if self.board[x + to_check[i][0], y + to_check[i][1]] == desired_result[i]:
+                    continue
+                else:
+                    return False
+            except IndexError:
                 return False
         return True
     
@@ -239,9 +249,12 @@ class TemplateBook():
             intrusion_coords (Tuple[int, int]): Coordinates where counters are required to play against.
             key (Tuple[Tuple[int, int]]): Key from template dictionary that includes all necessary positional coordinates for pattern. (Used here to access dictionary).
         """
-        x, y = tile_coords
-        x2, y2 = intrusion_coords
-        if self.board[x,y] == self.colour:
-            self.found_ingame[template_name]["Responses"][(x+x2, y+y2)] = ( self.templates[template_name][key]["Responses"][(x2, y2)][0] + x, self.templates[template_name][key]["Responses"][(x2, y2)][1] + y)
-            self.responses[(x+x2, y+y2)] = self.found_ingame[template_name]["Responses"][(x+x2, y+y2)]
-        self.filled_board[x + x2, y + y2] = self.board[x,y] + "*"
+        try:
+            x, y = tile_coords
+            x2, y2 = intrusion_coords
+            if self.board[x,y] == self.colour:
+                self.found_ingame[template_name]["Responses"][(x+x2, y+y2)] = ( self.templates[template_name][key]["Responses"][(x2, y2)][0] + x, self.templates[template_name][key]["Responses"][(x2, y2)][1] + y )
+                self.responses[(x+x2, y+y2)] = self.found_ingame[template_name]["Responses"][(x+x2, y+y2)]
+            self.filled_board[x + x2, y + y2] = self.board[x,y] + "*"
+        except IndexError:
+            return

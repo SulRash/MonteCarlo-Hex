@@ -2,6 +2,7 @@ import socket
 import math
 from mcts.uct_algorithm import UCT
 from mcts.Colour import Colour
+from books.book import TemplateBook, OpeningBook
 
 class Agent003():
     """
@@ -61,16 +62,26 @@ class Agent003():
                     [0]*self.board_size for i in range(self.board_size)]
 
                 if self.colour == "R":
+                    self.opening_book = OpeningBook(self.board, True)
                     self.make_move()
+                else:
+                    self.opening_book = OpeningBook(self.board, False)
+                
+                self.template_book = TemplateBook(self.board, self.colour)
+                
 
             elif s[0] == "END":
                 return True
 
             elif s[0] == "CHANGE":
+                
+                self.opening_book.current_move += 1
+                
                 if s[3] == "END":
                     return True
 
                 elif s[1] == "SWAP":
+                    self.opening_book.first, self.opening_book.flag = False, False
                     self.colour = self.opp_colour()
                     self.uct.colour = self.uct.colour.opposite()
                     self.board_string = s[2]
@@ -80,6 +91,7 @@ class Agent003():
                 elif s[3] == self.colour:
                     self.board_string = s[2]
                     action = [int(x) for x in s[1].split(",")]
+                    self.opponent_move = action
                     self.board[action[0]][action[1]] = self.opp_colour()
 
                     self.make_move()
@@ -90,16 +102,21 @@ class Agent003():
         """
         (-1,-1) for swap, else play the move on the tile.
         """
-        print(self.colour)
-        print(self.uct.board_size)
-
-        if self.turn_count < self.n_openings and self.board_size == 11:
-            # Opening book moves are handled here
-            # Including SWAP
-            pass
+        if self.turn_count < 2 and self.board_size == 11:
+            action = self.opening_book.get_opening()
+            if action == True:
+                self.s.sendall(bytes(f"-1,-1\n", "utf-8"))
+            elif action == False:
+                action = self.uct.search(self.board_string)
+                self.s.sendall(action)
+            else:    
+                self.s.sendall(bytes(f"{action[0]},{action[1]}\n", "utf-8"))
         else:
             action = self.uct.search(self.board_string)
             self.s.sendall(action)
+            #action = action.decode("utf-8").strip().split("\n")
+            #print(action)
+            #self.previous_move = (int(action[0][0]), int(action[0][2]))
 
         self.turn_count += 1
 

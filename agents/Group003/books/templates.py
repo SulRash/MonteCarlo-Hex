@@ -4,14 +4,7 @@ templates = {
     
     "Bottleneck": {
         
-        """
-            When checking for bottleneck, we check for the following tuple:
-                ( (x, y), (x2, y2), (x3, y3), (x4, y4), (x5, y5) )
-            Where:
-                ( (Relative to player on edge position empty tile), (Relative to player on edge position empty tile), (Players own other tile relative to the first),
-                    (Player's own other tile relative to the first), (Enemy's tile relative to the first) )
-            We return tiles to mark as owned intrusion tiles.
-        """
+        
         
             # Blue defending
             ( (0, -1), (1, -1), (0, -2), (2, -2), (1, -2) ): {
@@ -183,12 +176,7 @@ templates = {
     # Update like the rest in terms of formatting.
     "Connections": {
         
-        """
-            When checking for connections, we check for the following tuple:
-                ( (x, y), (x2, y2), (x3, y3) )
-            Where:
-                ( (Relative to player position's empty tile), (Relative to player position's empty tile), (Players own other tiles) )
-        """
+        
         
         ( (-1, 0), (0, -1), (-1, -1) ): {
             "Intrusions": ( (-1, 0), (0, -1) ),
