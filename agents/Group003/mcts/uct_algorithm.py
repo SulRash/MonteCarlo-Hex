@@ -20,7 +20,7 @@ class UCT:
         self.colour = colour
         self.c = c
 
-    def search2(self, state: str, t: int) -> bytes:
+    def search(self, state: str, t: int) -> bytes:
         self.TIME = min(12-0.3*(t-1), 1)
         t0 = time.time()
 
@@ -50,7 +50,7 @@ class UCT:
             self.backup(v1, reward)
         return v0.children, v0.N
 
-    def search(self, state: str, t: int) -> bytes:
+    def search2(self, state: str, t: int) -> bytes:
         self.TIME = max(12-0.3*(t-1), 1)
         board = Board.from_string(state, self.board_size)
         v0 = Node(None, None, board, self.colour)
