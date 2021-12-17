@@ -29,14 +29,12 @@ class OpeningBook():
             if not self.current_move:
                 return openings[1]["Move"]
             else:
-                keys_list = list(openings)
-                for key in keys_list:
-                    try:
-                        return openings[1]["Responses"][key]
-                    except:
-                        continue
-                return False
-                    
+                if opponent_move in list(openings[1]["Responses"].keys()):
+                    print(openings[1]["Responses"][opponent_move])
+                    return openings[1]["Responses"][opponent_move]
+                else:
+                    return False
+                
         else:
             if self.flag and self.swap(opponent_move):
                 return True

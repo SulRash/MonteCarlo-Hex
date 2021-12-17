@@ -82,7 +82,11 @@ class Agent003():
                     return True
 
                 elif s[1] == "SWAP":
-                    self.opening_book.first, self.opening_book.flag = False, False
+                    if self.colour == "R":
+                        self.opening_book.first = False
+                    else:
+                        self.opening_book.first = True
+                    self.opening_book.flag = False
                     self.colour = self.opp_colour()
                     self.uct.colour = self.uct.colour.opposite()
                     self.board_string = s[2]
