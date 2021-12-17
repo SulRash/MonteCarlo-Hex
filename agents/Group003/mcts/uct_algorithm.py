@@ -61,7 +61,7 @@ class UCT:
             acum_rew.append(child[1])
             v0.children += child[0]
         v0.N = sum(acum_rew)/len(acum_rew)
-        print(len(v0.children))
+        subprocs.close()
         
         # derive action from best child
         best_child = self.best_child(v0)
