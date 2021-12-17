@@ -35,8 +35,6 @@ class UCT:
         # derive action from best child
         best_child = self.best_child(v0)
         
-        print(len(v0.children))
-        
         # convert to string
         move_string = bytes(f"{best_child.a.x},{best_child.a.y}\n", "utf-8")
         # for c in v0.children:
@@ -55,15 +53,14 @@ class UCT:
         board = Board.from_string(state, self.board_size)
         v0 = Node(None, None, board, self.colour)
         
-        subprocs = multiprocessing.Pool(int(multiprocessing.cpu_count()/2))
+        subprocs = multiprocessing.Pool(int(multiprocessing.cpu_count()))
         t0 = time.time()
-        children = subprocs.starmap(self.multiprocess_loop, [(v0,t0)]*int(multiprocessing.cpu_count()/2))
+        children = subprocs.starmap(self.multiprocess_loop, [(v0,t0)]*int(multiprocessing.cpu_count()))
         acum_rew = []
         for child in children:
             acum_rew.append(child[1])
             v0.children += child[0]
         v0.N = sum(acum_rew)/len(acum_rew)
-        print(len(v0.children))
         
         # derive action from best child
         best_child = self.best_child(v0)

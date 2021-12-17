@@ -30,7 +30,6 @@ class OpeningBook():
                 return openings[1]["Move"]
             else:
                 if opponent_move in list(openings[1]["Responses"].keys()):
-                    print(openings[1]["Responses"][opponent_move])
                     return openings[1]["Responses"][opponent_move]
                 else:
                     return False

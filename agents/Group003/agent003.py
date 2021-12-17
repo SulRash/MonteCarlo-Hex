@@ -142,9 +142,6 @@ class Agent003():
                 action = action[0].split(",")
                 self.previous_move = (int(action[0]), int(action[1]))
                 self.template_book.check_for_all((self.previous_move[0], self.previous_move[1]))
-                
-            print(self.template_book.responses)
-                
 
         self.turn_count += 1
         self.global_turn += 2
