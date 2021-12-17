@@ -104,11 +104,14 @@ class Agent003():
         if self.turn_count < 2 and self.board_size == 11:
             action = self.opening_book.get_opening()
             if action == True:
+                print(action)
                 self.s.sendall(bytes(f"-1,-1\n", "utf-8"))
             elif action == False:
                 action = self.uct.search(self.board_string, self.turn_count)
+                print(action)
                 self.s.sendall(action)
-            else:    
+            else:
+                print(action)    
                 self.s.sendall(bytes(f"{action[0]},{action[1]}\n", "utf-8"))
         else:
             
