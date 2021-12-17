@@ -31,6 +31,8 @@ class Agent003():
             c = 1/math.sqrt(2)
         )
         
+        self.opponent_move = None
+        
         self.init_template = 1
 
     def run(self):
@@ -102,7 +104,7 @@ class Agent003():
         (-1,-1) for swap, else play the move on the tile.
         """
         if self.turn_count < 2 and self.board_size == 11:
-            if self.opponent_move == None:
+            if self.opponent_move is None:
                 action = self.opening_book.get_opening()
             else:
                 action = self.opening_book.get_opening(self.opponent_move)
