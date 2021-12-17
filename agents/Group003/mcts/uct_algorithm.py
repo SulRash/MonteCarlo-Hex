@@ -53,9 +53,9 @@ class UCT:
         board = Board.from_string(state, self.board_size)
         v0 = Node(None, None, board, self.colour)
         
-        subprocs = multiprocessing.Pool(int(multiprocessing.cpu_count()))
+        subprocs = multiprocessing.Pool(int(multiprocessing.cpu_count()-5))
         t0 = time.time()
-        children = subprocs.starmap(self.multiprocess_loop, [(v0,t0)]*int(multiprocessing.cpu_count()))
+        children = subprocs.starmap(self.multiprocess_loop, [(v0,t0)]*int(multiprocessing.cpu_count()-5))
         acum_rew = []
         for child in children:
             acum_rew.append(child[1])
